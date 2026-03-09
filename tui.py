@@ -8,6 +8,61 @@ import math
 
 # --- Modals ---
 
+class CompanionWidget(Static):
+    def on_mount(self) -> None:
+        self.frame = 0
+        self.set_interval(0.5, self.animate)
+
+    def animate(self) -> None:
+        self.frame += 1
+        self.refresh_appearance()
+
+    def refresh_appearance(self) -> None:
+        level = data_store.player.level
+        f = self.frame
+        
+        if level < 2:
+            # Stage 1: Wobbling Egg
+            tilt = "/" if f % 2 == 0 else "\\"
+            art = [
+                "   .---.   ",
+                f"  {tilt}     {tilt} ",
+                " (   ?   ) ",
+                "  \\     /  ",
+                "   '---'   "
+            ]
+        elif level < 5:
+            # Stage 2: Bouncing Slime
+            bounce = "" if f % 4 == 0 else "\n"
+            pad = "\n" if f % 4 == 0 else ""
+            art = [
+                bounce + "    ____   ",
+                "   /    \\  ",
+                "  ( o  o ) ",
+                "   \\____/  " + pad
+            ]
+        elif level < 8:
+            # Stage 3: Blinking Kitten
+            eyes = "o o" if f % 4 != 0 else "- -"
+            art = [
+                "   /\\_/\\   ",
+                f"  ( {eyes} )  ",
+                "   > ^ <   ",
+                "           "
+            ]
+        else:
+            # Stage 4: Cat with blinking and tail wag
+            eyes = "o o" if f % 4 != 0 else "- -"
+            tail = "~" if f % 2 == 0 else "-"
+            art = [
+                "   /\\_/\\   ",
+                f"  ( {eyes} )  ",
+                "   > ^ <   ",
+                f"  /     \\{tail}"
+            ]
+            
+        self.update("\n".join(art))
+
 class TaskAddModal(ModalScreen):
     def __init__(self, task=None):
         super().__init__()
@@ -181,6 +236,8 @@ class Dashboard(Screen):
                     ProgressBar(total=100, show_percentage=True, id="xp-bar"),
                     classes="stats-card"
                 )
+                with Vertical(classes="stats-card"):
+                    yield CompanionWidget(id="companion")
                 yield Vertical(
                     Label("Credits", classes="card-title"),
                     Label(f"{p.credits} cr", id="credits-label"),
@@ -223,6 +280,8 @@ class Dashboard(Screen):
                 badges_table.clear()
                 for b in data_store.badges[-5:]:
                     badges_table.add_row(b.name, b.earned_at[:10])
+            
+            self.query_one("#companion", CompanionWidget).refresh_appearance()
         except Exception:
             pass # Screen might not be fully ready yet
 
@@ -514,12 +573,24 @@ class EconomyScreen(Screen):
 class CoreApp(App):
     CSS = """
     #dashboard-container { padding: 1; }
-    #stats-row { height: 8; margin-bottom: 1; }
+    #stats-row { height: 12; margin-bottom: 1; }
     .stats-card { width: 1fr; background: $surface; border: solid $primary; padding: 1; margin: 0 1; align: center middle; }
     #level-label { text-style: bold; color: $accent; }
     #credits-label { color: $success; text-style: bold; }
     .section-title { background: $primary; color: white; padding: 0 1; margin-top: 1; }
     .column { width: 1fr; padding: 1; }
+    
+    #companion {
+        color: $accent;
+        text-style: bold;
+        width: auto;
+        height: auto;
+        content-align: center middle;
+    }
+     
+    ProgressBar .progress--eta {
+        display: none;
+    }
     
     #task-modal-dialog, #goal-modal-dialog, #proj-modal-dialog, #habit-modal-dialog {
         grid-size: 1;

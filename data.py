@@ -1,5 +1,6 @@
 import json
 import os
+import inspect
 from dataclasses import asdict
 from typing import Dict, List, Any
 from models import Task, Project, Goal, Habit, BadHabit, Badge, Player
@@ -25,14 +26,25 @@ class CoreData:
 
         with open(DATA_FILE, "r") as f:
             data = json.load(f)
-            self.tasks = [Task(**t) for t in data.get("tasks", [])]
-            self.projects = [Project(**p) for p in data.get("projects", [])]
-            self.goals = [Goal(**g) for g in data.get("goals", [])]
-            self.habits = [Habit(**h) for h in data.get("habits", [])]
-            self.bad_habits = [BadHabit(**bh) for bh in data.get("bad_habits", [])]
-            self.badges = [Badge(**b) for b in data.get("badges", [])]
+            
+            def safe_load(cls, items):
+                import inspect
+                valid_keys = inspect.signature(cls).parameters.keys()
+                return [cls(**{k: v for k, v in item.items() if k in valid_keys}) for item in items]
+
+            self.tasks = safe_load(Task, data.get("tasks", []))
+            self.projects = safe_load(Project, data.get("projects", []))
+            self.goals = safe_load(Goal, data.get("goals", []))
+            self.habits = safe_load(Habit, data.get("habits", []))
+            self.bad_habits = safe_load(BadHabit, data.get("bad_habits", []))
+            self.badges = safe_load(Badge, data.get("badges", []))
+            
             self.logs = data.get("logs", [])
-            self.player = Player(**data.get("player", {}))
+            
+            # Safe load for player
+            player_data = data.get("player", {})
+            valid_player_keys = inspect.signature(Player).parameters.keys()
+            self.player = Player(**{k: v for k, v in player_data.items() if k in valid_player_keys})
 
     def save(self):
         data = {

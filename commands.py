@@ -26,20 +26,11 @@ def sync_daily_tasks():
                 for t in data_store.tasks
             )
             if not exists:
-                task_add(daily_title, project_id=p.id, due_date=today, priority="medium")
+                task_add(daily_title, project_id=p.id, due_date=today, priority="medium", estimated_minutes=p.default_task_minutes)
     
-    # Sync Goals
-    for g in data_store.goals:
-        if g.status == "active":
-            daily_title = f"Progress Goal: {g.title}"
-            # Check if today's task already exists
-            exists = any(
-                t.title == daily_title and 
-                datetime.fromisoformat(t.created_at).date().isoformat() == today
-                for t in data_store.tasks if not t.project_id # Goal tasks aren't linked to projects
-            )
-            if not exists:
-                task_add(daily_title, project_id=None, due_date=today, priority="medium")
+    # Goal tasks are no longer auto-created per user request. 
+    # Users can link projects to goals instead.
+
 
 # --- Economy Logic ---
 def add_xp_credits(xp: int, credits: int):
@@ -50,20 +41,21 @@ def add_xp_credits(xp: int, credits: int):
     data_store.save()
 
 # --- Goal Commands ---
-def goal_add(title, description, badge_name, badge_description):
+def goal_add(title, description, badge_name, badge_description, due_date=None):
     new_id = generate_id("goal", data_store.goals)
-    new_goal = Goal(id=new_id, title=title, description=description, badge_name=badge_name, badge_description=badge_description)
+    new_goal = Goal(id=new_id, title=title, description=description, badge_name=badge_name, badge_description=badge_description, due_date=due_date)
     data_store.goals.append(new_goal)
     data_store.save()
     console.print(f"[green]Goal added: {new_id} - {title}[/green]")
 
-def goal_edit(goal_id, title=None, description=None, badge_name=None, badge_description=None):
+def goal_edit(goal_id, title=None, description=None, badge_name=None, badge_description=None, due_date=None):
     for g in data_store.goals:
         if g.id == goal_id:
             if title: g.title = title
             if description: g.description = description
             if badge_name: g.badge_name = badge_name
             if badge_description: g.badge_description = badge_description
+            if due_date is not None: g.due_date = due_date
             data_store.save()
             console.print(f"[green]Goal updated: {goal_id}[/green]")
             return True
@@ -84,9 +76,10 @@ def goal_list():
     table = Table(title="Goals")
     table.add_column("ID", style="cyan")
     table.add_column("Title", style="magenta")
+    table.add_column("Due", style="green")
     table.add_column("Status", style="yellow")
     for g in data_store.goals:
-        table.add_row(g.id, g.title, g.status)
+        table.add_row(g.id, g.title, g.due_date or "-", g.status)
     console.print(table)
 
 def goal_done(goal_id):
@@ -106,19 +99,27 @@ def goal_done(goal_id):
     console.print(f"[red]Goal {goal_id} not found or already done.[/red]")
 
 # --- Project Commands ---
-def project_add(title, description, goal_id=None):
+def project_add(title, description, goal_id=None, default_task_minutes=30, due_date=None):
     new_id = generate_id("proj", data_store.projects)
-    new_proj = Project(id=new_id, title=title, description=description, goal_id=goal_id)
+    new_proj = Project(id=new_id, title=title, description=description, goal_id=goal_id, default_task_minutes=int(default_task_minutes), due_date=due_date)
     data_store.projects.append(new_proj)
     data_store.save()
     console.print(f"[green]Project added: {new_id} - {title}[/green]")
+    
+    # Create the first daily task immediately
+    today = date.today().isoformat()
+    daily_title = f"Work on Project: {title}"
+    task_add(daily_title, project_id=new_id, due_date=today, priority="medium", estimated_minutes=int(default_task_minutes))
 
-def project_edit(project_id, title=None, description=None, goal_id=None):
+
+def project_edit(project_id, title=None, description=None, goal_id=None, default_task_minutes=None, due_date=None):
     for p in data_store.projects:
         if p.id == project_id:
             if title: p.title = title
             if description: p.description = description
             if goal_id is not None: p.goal_id = goal_id if goal_id != "" else None
+            if default_task_minutes is not None: p.default_task_minutes = int(default_task_minutes)
+            if due_date is not None: p.due_date = due_date
             data_store.save()
             console.print(f"[green]Project updated: {project_id}[/green]")
             return True
@@ -139,9 +140,10 @@ def project_list():
     table = Table(title="Projects")
     table.add_column("ID", style="cyan")
     table.add_column("Title", style="magenta")
+    table.add_column("Due", style="green")
     table.add_column("Status", style="yellow")
     for p in data_store.projects:
-        table.add_row(p.id, p.title, p.status)
+        table.add_row(p.id, p.title, p.due_date or "-", p.status)
     console.print(table)
 
 def project_done(project_id):
@@ -155,20 +157,21 @@ def project_done(project_id):
     console.print(f"[red]Project {project_id} not found or already done.[/red]")
 
 # --- Task Commands ---
-def task_add(title, project_id=None, due_date=None, priority="medium"):
+def task_add(title, project_id=None, due_date=None, priority="medium", estimated_minutes=30):
     new_id = generate_id("task", data_store.tasks)
-    new_task = Task(id=new_id, title=title, project_id=project_id, due_date=due_date, priority=priority)
+    new_task = Task(id=new_id, title=title, project_id=project_id, due_date=due_date, priority=priority, estimated_minutes=int(estimated_minutes))
     data_store.tasks.append(new_task)
     data_store.save()
-    console.print(f"[green]Task added: {new_id} - {title}[/green]")
+    console.print(f"[green]Task added: {new_id} - {title} ({estimated_minutes} min)[/green]")
 
-def task_edit(task_id, title=None, project_id=None, due_date=None, priority=None):
+def task_edit(task_id, title=None, project_id=None, due_date=None, priority=None, estimated_minutes=None):
     for t in data_store.tasks:
         if t.id == task_id:
             if title: t.title = title
             if project_id is not None: t.project_id = project_id if project_id != "" else None
             if due_date: t.due_date = due_date
             if priority: t.priority = priority
+            if estimated_minutes is not None: t.estimated_minutes = int(estimated_minutes)
             data_store.save()
             console.print(f"[green]Task updated: {task_id}[/green]")
             return True
@@ -189,22 +192,23 @@ def task_list():
     table = Table(title="Tasks")
     table.add_column("ID", style="cyan")
     table.add_column("Title", style="magenta")
+    table.add_column("Duration", style="green")
     table.add_column("Priority", style="yellow")
     table.add_column("Status", style="blue")
     for t in data_store.tasks:
-        table.add_row(t.id, t.title, t.priority, t.status)
+        table.add_row(t.id, t.title, f"{t.estimated_minutes}m", t.priority, t.status)
     console.print(table)
 
 def task_done(task_id):
     for t in data_store.tasks:
         if t.id == task_id and t.status != "done":
             t.status = "done"
-            # XP/Credits based on priority
-            rewards = {"high": (30, 20), "medium": (20, 10), "low": (10, 5)}
-            xp, credits = rewards.get(t.priority, (20, 10))
+            # XP/Credits based on duration: 60 mins = 20 XP / 10 Credits
+            xp = max(5, int(t.estimated_minutes / 3))
+            credits = max(2, int(t.estimated_minutes / 6))
             add_xp_credits(xp, credits)
             data_store.save()
-            console.print(f"[green]Task done! +{xp} XP, +{credits} Credits[/green]")
+            console.print(f"[green]Task done! +{xp} XP, +{credits} Credits (Duration: {t.estimated_minutes}m)[/green]")
             return
     console.print(f"[red]Task {task_id} not found or already done.[/red]")
 

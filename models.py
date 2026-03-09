@@ -9,6 +9,7 @@ class Task:
     project_id: Optional[str] = None
     due_date: Optional[str] = None
     priority: str = "medium"  # high, medium, low
+    estimated_minutes: int = 30
     status: str = "todo"  # todo, done
     created_at: str = field(default_factory=lambda: datetime.now().isoformat())
 
@@ -19,6 +20,8 @@ class Project:
     description: str
     goal_id: Optional[str] = None
     status: str = "active"  # active, done
+    default_task_minutes: int = 30
+    due_date: Optional[str] = None
     created_at: str = field(default_factory=lambda: datetime.now().isoformat())
 
 @dataclass
@@ -29,6 +32,7 @@ class Goal:
     badge_name: str
     badge_description: str
     status: str = "active"  # active, done
+    due_date: Optional[str] = None
     created_at: str = field(default_factory=lambda: datetime.now().isoformat())
     completed_at: Optional[str] = None
 

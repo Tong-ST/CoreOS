@@ -1,0 +1,148 @@
+{
+    "tasks": [
+        {
+            "id": "task-001",
+            "title": "Implement TUI",
+            "project_id": "proj-001",
+            "due_date": null,
+            "priority": "high",
+            "status": "done",
+            "created_at": "2026-03-09T12:26:42.765588"
+        },
+        {
+            "id": "task-002",
+            "title": "learn CS50",
+            "project_id": null,
+            "due_date": null,
+            "priority": "medium",
+            "status": "done",
+            "created_at": "2026-03-09T12:36:52.463036"
+        },
+        {
+            "id": "task-004",
+            "title": "Learn Gemini-cli",
+            "project_id": null,
+            "due_date": "2026-03-1",
+            "priority": "medium",
+            "status": "done",
+            "created_at": "2026-03-09T12:43:53.339765"
+        },
+        {
+            "id": "task-005",
+            "title": "Work on Project: Build CoreOS",
+            "project_id": "proj-001",
+            "due_date": "2026-03-09",
+            "priority": "medium",
+            "status": "done",
+            "created_at": "2026-03-09T12:58:56.933653"
+        },
+        {
+            "id": "task-005",
+            "title": "Progress Goal: Master Python Skills",
+            "project_id": null,
+            "due_date": "2026-03-09",
+            "priority": "medium",
+            "status": "done",
+            "created_at": "2026-03-09T13:27:55.651336"
+        },
+        {
+            "id": "task-006",
+            "title": "Work on Project: ADB Mini Project",
+            "project_id": "proj-002",
+            "due_date": "2026-03-09",
+            "priority": "medium",
+            "status": "done",
+            "created_at": "2026-03-09T13:37:38.266174"
+        },
+        {
+            "id": "task-007",
+            "title": "Visit Fam",
+            "project_id": null,
+            "due_date": "",
+            "priority": "medium",
+            "status": "done",
+            "created_at": "2026-03-09T13:42:50.609882"
+        }
+    ],
+    "projects": [
+        {
+            "id": "proj-001",
+            "title": "Build CoreOS",
+            "description": "A terminal-based productivity system",
+            "goal_id": "goal-001",
+            "status": "active",
+            "created_at": "2026-03-09T12:26:42.635296"
+        },
+        {
+            "id": "proj-002",
+            "title": "ADB Mini Project",
+            "description": "\u0e40\u0e15\u0e23\u0e35\u0e22\u0e21\u0e1e\u0e23\u0e35\u0e40\u0e0b\u0e47\u0e19\u0e15\u0e4c Project \u0e27\u0e34\u0e0a\u0e32 Database",
+            "goal_id": "",
+            "status": "active",
+            "created_at": "2026-03-09T13:37:30.440772"
+        },
+        {
+            "id": "proj-003",
+            "title": "TEST Project",
+            "description": "Test",
+            "goal_id": "",
+            "status": "done",
+            "created_at": "2026-03-09T13:50:17.961780"
+        }
+    ],
+    "goals": [
+        {
+            "id": "goal-001",
+            "title": "Master Python Skills",
+            "description": "Become an expert in Python programming",
+            "badge_name": "Python Master",
+            "badge_description": "Awarded for mastering Python basics to advanced concepts",
+            "status": "active",
+            "created_at": "2026-03-09T12:26:42.505797",
+            "completed_at": null
+        }
+    ],
+    "habits": [
+        {
+            "id": "habit-001",
+            "title": "Drink Water",
+            "credit_reward": 10,
+            "last_done": "2026-03-09T13:03:11.922888"
+        },
+        {
+            "id": "habit-002",
+            "title": "exercise",
+            "credit_reward": 50,
+            "last_done": "2026-03-09T13:12:07.524270"
+        }
+    ],
+    "bad_habits": [
+        {
+            "id": "bad-001",
+            "title": "Play a game for 2hr",
+            "credit_cost": 40
+        }
+    ],
+    "badges": [],
+    "logs": [
+        {
+            "type": "bad_habit_spend",
+            "id": "bad-001",
+            "title": "Play a game for 2hr",
+            "cost": 40,
+            "timestamp": "2026-03-09T13:38:52.837294"
+        },
+        {
+            "type": "bad_habit_spend",
+            "id": "bad-001",
+            "title": "Play a game for 2hr",
+            "cost": 40,
+            "timestamp": "2026-03-09T13:43:18.158241"
+        }
+    ],
+    "player": {
+        "xp": 260,
+        "credits": 30,
+        "level": 2
+    }
+}

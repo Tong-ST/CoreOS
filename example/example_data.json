@@ -1,0 +1,248 @@
+{
+    "tasks": [
+        {
+            "id": "task-001",
+            "title": "Initial Setup: Finalize CoreOS Project",
+            "project_id": null,
+            "due_date": "2026-03-10",
+            "priority": "high",
+            "estimated_minutes": 30,
+            "status": "todo",
+            "created_at": "2026-03-10T10:00:00.000000"
+        },
+        {
+            "id": "task-007",
+            "title": "Go shopping",
+            "project_id": null,
+            "due_date": "2026-03-10",
+            "priority": "low",
+            "estimated_minutes": 60,
+            "status": "todo",
+            "created_at": "2026-03-10T14:05:29.809472"
+        },
+        {
+            "id": "task-008",
+            "title": "Project: CS50 Web Assignments",
+            "project_id": "proj-001",
+            "due_date": "2026-03-10",
+            "priority": "high",
+            "estimated_minutes": 120,
+            "status": "todo",
+            "created_at": "2026-03-10T14:07:00.560755"
+        },
+        {
+            "id": "task-009",
+            "title": "Project: Master Thesis Drafting",
+            "project_id": "proj-002",
+            "due_date": "2026-03-10",
+            "priority": "high",
+            "estimated_minutes": 120,
+            "status": "todo",
+            "created_at": "2026-03-10T14:07:00.562803"
+        },
+        {
+            "id": "task-010",
+            "title": "Project: Portfolio Simulation & Analysis",
+            "project_id": "proj-003",
+            "due_date": "2026-03-10",
+            "priority": "medium",
+            "estimated_minutes": 45,
+            "status": "todo",
+            "created_at": "2026-03-10T14:07:00.563417"
+        },
+        {
+            "id": "task-011",
+            "title": "Project: Neural Network Implementations",
+            "project_id": "proj-004",
+            "due_date": "2026-03-10",
+            "priority": "low",
+            "estimated_minutes": 60,
+            "status": "todo",
+            "created_at": "2026-03-10T14:07:00.563946"
+        },
+        {
+            "id": "task-012",
+            "title": "Project: Hypertrophy Program",
+            "project_id": "proj-005",
+            "due_date": "2026-03-10",
+            "priority": "medium",
+            "estimated_minutes": 90,
+            "status": "todo",
+            "created_at": "2026-03-10T14:07:00.564467"
+        }
+    ],
+    "projects": [
+        {
+            "id": "proj-001",
+            "title": "CS50 Web Assignments",
+            "description": "Building and submitting projects for the Harvard CS50 Web course.",
+            "goal_id": "goal-001",
+            "status": "active",
+            "default_task_minutes": 120,
+            "default_priority": "high",
+            "due_date": "2026-04-12",
+            "created_at": "2026-03-10T10:00:00.000000"
+        },
+        {
+            "id": "proj-002",
+            "title": "Master Thesis Drafting",
+            "description": "Writing the core chapters of the Master degree project.",
+            "goal_id": "goal-002",
+            "status": "active",
+            "default_task_minutes": 120,
+            "default_priority": "high",
+            "due_date": "2026-06-01",
+            "created_at": "2026-03-10T10:00:00.000000"
+        },
+        {
+            "id": "proj-003",
+            "title": "Portfolio Simulation & Analysis",
+            "description": "Analyzing market trends and testing strategies in a simulated environment.",
+            "goal_id": "goal-003",
+            "status": "active",
+            "default_task_minutes": 45,
+            "default_priority": "medium",
+            "due_date": null,
+            "created_at": "2026-03-10T10:00:00.000000"
+        },
+        {
+            "id": "proj-004",
+            "title": "Neural Network Implementations",
+            "description": "Building and training small-scale models from research papers.",
+            "goal_id": "goal-004",
+            "status": "active",
+            "default_task_minutes": 60,
+            "default_priority": "low",
+            "due_date": "",
+            "created_at": "2026-03-10T10:00:00.000000"
+        },
+        {
+            "id": "proj-005",
+            "title": "Hypertrophy Program",
+            "description": "Consistent weight training sessions for muscle growth.",
+            "goal_id": "goal-005",
+            "status": "active",
+            "default_task_minutes": 90,
+            "default_priority": "medium",
+            "due_date": "",
+            "created_at": "2026-03-10T10:00:00.000000"
+        }
+    ],
+    "goals": [
+        {
+            "id": "goal-001",
+            "title": "Finish CS50 Web Course",
+            "description": "Complete all projects and earn the certificate.",
+            "badge_name": "Web Architect",
+            "badge_description": "Mastered Python, JavaScript, and SQL for the web.",
+            "status": "active",
+            "due_date": "2026-06-15",
+            "created_at": "2026-03-10T10:00:00.000000",
+            "completed_at": null
+        },
+        {
+            "id": "goal-002",
+            "title": "Finish Master Degree Project",
+            "description": "Successful defense and completion of the thesis.",
+            "badge_name": "Master of Science",
+            "badge_description": "Awarded for completing advanced academic research.",
+            "status": "active",
+            "due_date": "2026-09-15",
+            "created_at": "2026-03-10T10:00:00.000000",
+            "completed_at": null
+        },
+        {
+            "id": "goal-003",
+            "title": "Become Proficient Investor",
+            "description": "Establish a consistent profitable trading strategy for Stock/Forex.",
+            "badge_name": "Market Oracle",
+            "badge_description": "Recognized for consistent analysis and portfolio growth.",
+            "status": "active",
+            "due_date": "2026-12-31",
+            "created_at": "2026-03-10T10:00:00.000000",
+            "completed_at": null
+        },
+        {
+            "id": "goal-004",
+            "title": "Mastering Artificial Intelligence",
+            "description": "Deep understanding of LLMs, neural networks, and prompt engineering.",
+            "badge_name": "Neural Architect",
+            "badge_description": "Mastered the building blocks of modern AI.",
+            "status": "active",
+            "due_date": null,
+            "created_at": "2026-03-10T10:00:00.000000",
+            "completed_at": null
+        },
+        {
+            "id": "goal-005",
+            "title": "Achieve Peak Physical Build",
+            "description": "Reach target body fat percentage and muscle mass goals.",
+            "badge_name": "Peak Condition",
+            "badge_description": "Transformed physique through discipline and health.",
+            "status": "active",
+            "due_date": "2026-12-31",
+            "created_at": "2026-03-10T10:00:00.000000",
+            "completed_at": null
+        }
+    ],
+    "habits": [
+        {
+            "id": "habit-001",
+            "title": "Read Technical/Finance Book (30m)",
+            "credit_reward": 15,
+            "last_done": null
+        },
+        {
+            "id": "habit-002",
+            "title": "Drink 3L of Water",
+            "credit_reward": 5,
+            "last_done": null
+        },
+        {
+            "id": "habit-003",
+            "title": "Daily Meditation/Focus session",
+            "credit_reward": 10,
+            "last_done": "2026-03-10T13:27:15.016074"
+        },
+        {
+            "id": "habit-004",
+            "title": "Maintain Macro/Nutrition Log",
+            "credit_reward": 10,
+            "last_done": null
+        }
+    ],
+    "bad_habits": [
+        {
+            "id": "bad-001",
+            "title": "Netflix/Streaming (1 hour)",
+            "credit_cost": 50
+        },
+        {
+            "id": "bad-002",
+            "title": "Gaming session (1 hour)",
+            "credit_cost": 40
+        },
+        {
+            "id": "bad-003",
+            "title": "Junk Food / Unhealthy Meal",
+            "credit_cost": 100
+        },
+        {
+            "id": "bad-004",
+            "title": "Social Media Doomscrolling (30m)",
+            "credit_cost": 30
+        },
+        {
+            "id": "bad-005",
+            "title": "Unproductive YouTube Binge",
+            "credit_cost": 60
+        }
+    ],
+    "badges": [],
+    "logs": [],
+    "player": {
+        "xp": 0,
+        "credits": 10,
+        "level": 1
+    }
+}

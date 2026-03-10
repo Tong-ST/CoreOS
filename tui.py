@@ -649,7 +649,7 @@ class CoreApp(App):
     DataTable {{
         background: transparent;
         border: none;
-        color: {THEME["text"]};
+        color: {THEME["text"]} 80%;
         height: auto;
     }}
     

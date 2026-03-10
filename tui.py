@@ -3,6 +3,7 @@ from textual.widgets import Header, Footer, Static, DataTable, Button, Label, Pr
 from textual.containers import Container, Horizontal, Vertical, Grid
 from textual.screen import Screen, ModalScreen
 from data import data_store
+from theme import THEME
 import commands
 import math
 
@@ -155,6 +156,7 @@ class ProjectAddModal(ModalScreen):
         g = self.project_item.goal_id if self.project_item and self.project_item.goal_id else ""
         dur = str(self.project_item.default_task_minutes) if self.project_item else "30"
         due = self.project_item.due_date if self.project_item else ""
+        priority_val = self.project_item.default_priority if self.project_item else "medium"
         label_text = "Edit Project" if self.project_item else "Add New Project"
         yield Grid(
             Label(label_text, id="modal-title"),
@@ -163,6 +165,12 @@ class ProjectAddModal(ModalScreen):
             Input(placeholder="Goal ID (Optional, e.g. goal-001)...", value=g, id="proj-goal"),
             Input(placeholder="Daily Task Duration (mins)...", value=dur, id="proj-duration"),
             Input(placeholder="Due Date (Optional)...", value=due, id="proj-due"),
+            Label("Default Task Priority:"),
+            Select(
+                [("High", "high"), ("Medium", "medium"), ("Low", "low")],
+                value=priority_val,
+                id="proj-priority"
+            ),
             Horizontal(
                 Button("Submit", variant="primary", id="submit"),
                 Button("Cancel", variant="error", id="cancel"),
@@ -177,7 +185,8 @@ class ProjectAddModal(ModalScreen):
             goal = self.query_one("#proj-goal", Input).value
             dur = self.query_one("#proj-duration", Input).value
             due = self.query_one("#proj-due", Input).value
-            if title: self.dismiss((title, desc, goal, dur, due))
+            priority = self.query_one("#proj-priority", Select).value
+            if title: self.dismiss((title, desc, goal, dur, due, priority))
             else: self.dismiss()
         else:
             self.dismiss()
@@ -228,30 +237,32 @@ class Dashboard(Screen):
     def compose(self) -> ComposeResult:
         p = data_store.player
         yield Header()
-        with Vertical(id="dashboard-container"):
-            with Horizontal(id="stats-row"):
-                yield Vertical(
-                    Label(f"Level {p.level}", id="level-label"),
-                    Label(f"XP: {p.xp}"),
-                    ProgressBar(total=100, show_percentage=True, id="xp-bar"),
-                    classes="stats-card"
-                )
-                with Vertical(classes="stats-card"):
-                    yield CompanionWidget(id="companion")
-                yield Vertical(
-                    Label("Credits", classes="card-title"),
-                    Label(f"{p.credits} cr", id="credits-label"),
-                    classes="stats-card"
-                )
-            yield Label("Active Tasks", classes="section-title")
-            yield DataTable(id="dashboard-tasks")
-            yield Label("Recent Badges", classes="section-title")
-            yield DataTable(id="dashboard-badges")
+        with Container(id="scroll-container"):
+            with Vertical(id="dashboard-container"):
+                with Horizontal(id="stats-row"):
+                    yield Vertical(
+                        Label(f"Level {p.level}", id="level-label"),
+                        Label(f"XP: {p.xp}", id="xp-label"),
+                        ProgressBar(total=100, show_percentage=False, id="xp-bar"),
+                        classes="stats-card"
+                    )
+                    with Vertical(classes="stats-card"):
+                        yield CompanionWidget(id="companion")
+                    yield Vertical(
+                        Label("Credits", classes="card-title"),
+                        Label(f"{p.credits} cr", id="credits-label"),
+                        classes="stats-card"
+                    )
+                yield Label("Active Tasks (Enter to mark Done)", classes="section-title")
+                yield DataTable(id="dashboard-tasks")
+                yield Label("Recent Badges", classes="section-title")
+                yield DataTable(id="dashboard-badges")
         yield Footer()
 
     def on_mount(self) -> None:
         tasks_table = self.query_one("#dashboard-tasks", DataTable)
-        tasks_table.add_columns("ID", "Title", "Due", "Duration", "Reward")
+        tasks_table.add_columns("Title", "Due", "Duration", "Priority", "Reward")
+        tasks_table.cursor_type = "row"
         badges_table = self.query_one("#dashboard-badges", DataTable)
         badges_table.add_columns("Name", "Earned At")
         self.refresh_data()
@@ -259,11 +270,22 @@ class Dashboard(Screen):
     def on_screen_resume(self) -> None:
         self.refresh_data()
 
+    def on_data_table_row_selected(self, event: DataTable.RowSelected) -> None:
+        if event.data_table.id == "dashboard-tasks":
+            row_data = event.data_table.get_row_at(event.cursor_row)
+            title = row_data[0]
+            # Find the task ID by title (assuming title is unique enough among todo tasks)
+            task = next((t for t in data_store.tasks if t.title == title and t.status == "todo"), None)
+            if task:
+                commands.task_done(task.id)
+                self.refresh_data()
+
     def refresh_data(self) -> None:
         p = data_store.player
         try:
             self.query_one("#xp-bar", ProgressBar).progress = p.xp % 100
             self.query_one("#level-label", Label).update(f"Level {p.level}")
+            self.query_one("#xp-label", Label).update(f"XP: {p.xp}")
             self.query_one("#credits-label", Label).update(f"{p.credits} cr")
             
             tasks_table = self.query_one("#dashboard-tasks", DataTable)
@@ -273,7 +295,7 @@ class Dashboard(Screen):
                     if t.status == "todo":
                         xp = max(5, int(t.estimated_minutes / 3))
                         creds = max(2, int(t.estimated_minutes / 6))
-                        tasks_table.add_row(t.id, t.title, t.due_date or "-", f"{t.estimated_minutes}m", f"{xp}xp/{creds}cr")
+                        tasks_table.add_row(t.title, t.due_date or "-", f"{t.estimated_minutes}m", t.priority, f"{xp}xp/{creds}cr")
             
             badges_table = self.query_one("#dashboard-badges", DataTable)
             if badges_table.columns:
@@ -288,7 +310,7 @@ class Dashboard(Screen):
 class GoalsProjectsScreen(Screen):
     def compose(self) -> ComposeResult:
         yield Header()
-        yield Label("Goals & Projects (g/p: New, e: Edit, x: Delete, Enter/d: Done)", classes="section-title")
+        yield Label("Goals & Projects (g/p: New, e: Edit, x: Delete, Enter/d: Done, u: Undo)", classes="section-title")
         with Horizontal():
             with Vertical(classes="column"):
                 yield Label("Goals", classes="section-title")
@@ -343,6 +365,15 @@ class GoalsProjectsScreen(Screen):
                 else:
                     commands.project_done(item_id)
                 self.refresh_data()
+        elif event.key == "u":
+            if isinstance(focused, DataTable) and focused.row_count > 0:
+                row_data = focused.get_row_at(focused.cursor_row)
+                item_id = row_data[0]
+                if focused.id == "goals-table":
+                    commands.goal_undo(item_id)
+                else:
+                    commands.project_undo(item_id)
+                self.refresh_data()
         elif event.key == "e":
             if isinstance(focused, DataTable) and focused.row_count > 0:
                 row_data = focused.get_row_at(focused.cursor_row)
@@ -395,14 +426,15 @@ class GoalsProjectsScreen(Screen):
 class TasksScreen(Screen):
     def compose(self) -> ComposeResult:
         yield Header()
-        yield Label("All Tasks (n: New, Enter/d: Done, e: Edit, x: Delete)", classes="section-title")
-        yield DataTable(id="all-tasks-table")
+        with Container(classes="scroll-container"):
+            yield Label("All Tasks (n: New, Enter/d: Done, e: Edit, x: Delete, u: Undo)", classes="section-title")
+            yield DataTable(id="all-tasks-table")
         yield Footer()
 
     def on_mount(self) -> None:
         table = self.query_one("#all-tasks-table", DataTable)
         table.cursor_type = "row"
-        table.add_columns("ID", "Title", "Due", "Duration", "Reward", "Status")
+        table.add_columns("ID", "Title", "Due", "Duration", "Priority", "Reward", "Status")
         self.refresh_data()
 
     def on_screen_resume(self) -> None:
@@ -419,6 +451,9 @@ class TasksScreen(Screen):
             task_id = row_data[0]
             if event.key == "d":
                 commands.task_done(task_id)
+                self.refresh_data()
+            elif event.key == "u":
+                commands.task_undo(task_id)
                 self.refresh_data()
             elif event.key == "e":
                 task = next(t for t in data_store.tasks if t.id == task_id)
@@ -451,31 +486,32 @@ class TasksScreen(Screen):
                 for t in sorted(data_store.tasks, key=lambda x: (x.status == "done", x.priority != "high", x.priority != "medium")):
                     xp = max(5, int(t.estimated_minutes / 3))
                     creds = max(2, int(t.estimated_minutes / 6))
-                    table.add_row(t.id, t.title, t.due_date or "-", f"{t.estimated_minutes}m", f"{xp}xp/{creds}cr", t.status)
+                    table.add_row(t.id, t.title, t.due_date or "-", f"{t.estimated_minutes}m", t.priority, f"{xp}xp/{creds}cr", t.status)
         except Exception:
             pass
 
 class EconomyScreen(Screen):
     def compose(self) -> ComposeResult:
         yield Header()
-        yield Label("Economy (h/b: New, e: Edit, x: Delete, Enter: Log/Spend)", classes="section-title")
-        with Horizontal():
-            with Vertical(classes="column"):
-                yield Label("Good Habits", classes="section-title")
-                yield DataTable(id="habits-table")
-            with Vertical(classes="column"):
-                yield Label("Bad Habits", classes="section-title")
-                yield DataTable(id="bad-habits-table")
+        with Container(classes="scroll-container"):
+            yield Label("Economy (h/b: New, e: Edit, x: Delete, Enter: Log/Spend)", classes="section-title")
+            with Horizontal():
+                with Vertical(classes="column"):
+                    yield Label("Good Habits", classes="section-title")
+                    yield DataTable(id="habits-table")
+                with Vertical(classes="column"):
+                    yield Label("Bad Habits", classes="section-title")
+                    yield DataTable(id="bad-habits-table")
         yield Footer()
 
     def on_mount(self) -> None:
         h_table = self.query_one("#habits-table", DataTable)
         h_table.cursor_type = "row"
-        h_table.add_columns("ID", "Title", "Reward", "Status")
+        h_table.add_columns("ID","Title", "Reward", "Status")
 
         bh_table = self.query_one("#bad-habits-table", DataTable)
         bh_table.cursor_type = "row"
-        bh_table.add_columns("ID", "Title", "Cost")
+        bh_table.add_columns("ID","Title", "Cost")
         self.refresh_data()
 
     def on_screen_resume(self) -> None:
@@ -571,38 +607,106 @@ class EconomyScreen(Screen):
             self.refresh_data()
 
 class CoreApp(App):
-    CSS = """
-    #dashboard-container { padding: 1; }
-    #stats-row { height: 12; margin-bottom: 1; }
-    .stats-card { width: 1fr; background: $surface; border: solid $primary; padding: 1; margin: 0 1; align: center middle; }
-    #level-label { text-style: bold; color: $accent; }
-    #credits-label { color: $success; text-style: bold; }
-    .section-title { background: $primary; color: white; padding: 0 1; margin-top: 1; }
-    .column { width: 1fr; padding: 1; }
+    background = THEME["background"]
+    CSS = f"""
+    * {{ 
+        background: transparent; 
+        color: {THEME["text"]};
+        scrollbar-background: transparent;
+        scrollbar-color: {THEME["border"]};
+        scrollbar-color-hover: {THEME["accent"]};
+        scrollbar-color-active: {THEME["accent"]};
+    }}
     
-    #companion {
-        color: $accent;
+    Screen, Container, Vertical, Horizontal, Grid, Static, Label, Header, Footer, #dashboard-container, #stats-row, .column {{
+        background: transparent;
+    }}
+    
+    #dashboard-container {{ 
+        padding: 1; 
+        height: auto;
+    }}
+    #scroll-container, .scroll-container {{
+        height: 1fr;
+        overflow-y: scroll;
+    }}
+    #stats-row {{ height: {THEME["stats_row_height"]}; margin-bottom: 1; }}
+    
+    .stats-card {{ 
+        width: 1fr; 
+        background: transparent; 
+        border: solid {THEME["accent"]}; 
+        padding: 1; 
+        margin: 0 1; 
+        align: center middle; 
+    }}
+    
+    #level-label {{ text-style: bold; color: {THEME["accent"]}; }}
+    #credits-label {{ color: {THEME["accent"]}; text-style: bold; }}
+    .section-title {{ background: {THEME["border"]} 60%; color: {THEME["text"]}; padding: 0 1; margin-top: 1; }}
+    .column {{ width: 1fr; padding: 1; }}
+    
+    DataTable {{
+        background: transparent;
+        border: none;
+        color: {THEME["text"]};
+        height: auto;
+    }}
+    
+    DataTable > .datatable--header {{
+        color: {THEME["accent"]};
+    }}
+
+    #companion {{
+        color: {THEME["accent"]};
         text-style: bold;
         width: auto;
         height: auto;
         content-align: center middle;
-    }
-     
-    ProgressBar .progress--eta {
-        display: none;
-    }
+    }}
     
-    #task-modal-dialog, #goal-modal-dialog, #proj-modal-dialog, #habit-modal-dialog {
+    ProgressBar .progress--bar {{
+        background: {THEME["border"]};
+        color: {THEME["accent"]};
+    }}
+    
+    ProgressBar > .progress--percentage {{
+        display: none;
+    }}
+    
+    ProgressBar .progress--eta {{
+        display: none;
+    }}
+    
+    #task-modal-dialog, #goal-modal-dialog, #proj-modal-dialog, #habit-modal-dialog {{
         grid-size: 1;
         padding: 1 2;
-        background: $surface;
-        border: thick $primary;
-        width: 60;
-        height: 40;
+        background: {THEME["surface"]};
+        border: thick {THEME["border"]};
+        width: {THEME["modal_width"]};
+        height: {THEME["modal_height"]};
         align: center middle;
-    }
-    #modal-title { text-align: center; text-style: bold; margin-bottom: 1; }
-    Input { margin-bottom: 1; }
+        overflow-y: auto;
+    }}
+    
+    Button {{
+        background: {THEME["border"]};
+        color: {THEME["text"]};
+        border: tall {THEME["accent"]};
+    }}
+    
+    Input {{ 
+        margin-bottom: 1; 
+        border: tall {THEME["border"]};
+        color: {THEME["text"]};
+    }}
+    
+    Input:focus, Select:focus {{
+        border: tall {THEME["accent"]};
+        background: {THEME["border"]} 20%;
+    }}
+    
+    #modal-title {{ text-align: center; text-style: bold; margin-bottom: 1; color: {THEME["accent"]}; }}
     """
     BINDINGS = [
         ("f1", "switch_screen('dashboard')", "Dashboard"),

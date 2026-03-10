@@ -38,6 +38,8 @@ def main():
     goal_sub.add_parser("list")
     goal_done = goal_sub.add_parser("done")
     goal_done.add_argument("id")
+    goal_undo = goal_sub.add_parser("undo")
+    goal_undo.add_argument("id")
 
     # Project
     proj_p = subparsers.add_parser("project")
@@ -48,6 +50,7 @@ def main():
     proj_add.add_argument("--goal", dest="goal_id")
     proj_add.add_argument("--duration", dest="duration", type=int, default=30)
     proj_add.add_argument("--due", dest="due_date")
+    proj_add.add_argument("--priority", default="medium")
     proj_edit = proj_sub.add_parser("edit")
     proj_edit.add_argument("id")
     proj_edit.add_argument("--title")
@@ -55,11 +58,14 @@ def main():
     proj_edit.add_argument("--goal", dest="goal_id")
     proj_edit.add_argument("--duration", dest="duration", type=int)
     proj_edit.add_argument("--due", dest="due_date")
+    proj_edit.add_argument("--priority")
     proj_del = proj_sub.add_parser("delete")
     proj_del.add_argument("id")
     proj_sub.add_parser("list")
     proj_done = proj_sub.add_parser("done")
     proj_done.add_argument("id")
+    proj_undo = proj_sub.add_parser("undo")
+    proj_undo.add_argument("id")
 
     # Task
     task_p = subparsers.add_parser("task")
@@ -82,6 +88,8 @@ def main():
     task_sub.add_parser("list")
     task_done = task_sub.add_parser("done")
     task_done.add_argument("id")
+    task_undo = task_sub.add_parser("undo")
+    task_undo.add_argument("id")
 
     # Habit
     habit_p = subparsers.add_parser("habit")
@@ -125,18 +133,21 @@ def main():
         elif args.sub == "delete": commands.goal_delete(args.id)
         elif args.sub == "list": commands.goal_list()
         elif args.sub == "done": commands.goal_done(args.id)
+        elif args.sub == "undo": commands.goal_undo(args.id)
     elif args.command == "project":
-        if args.sub == "add": commands.project_add(args.title, args.description, args.goal_id, args.duration, args.due_date)
-        elif args.sub == "edit": commands.project_edit(args.id, args.title, args.description, args.goal_id, args.duration, args.due_date)
+        if args.sub == "add": commands.project_add(args.title, args.description, args.goal_id, args.duration, args.due_date, args.priority)
+        elif args.sub == "edit": commands.project_edit(args.id, args.title, args.description, args.goal_id, args.duration, args.due_date, args.priority)
         elif args.sub == "delete": commands.project_delete(args.id)
         elif args.sub == "list": commands.project_list()
         elif args.sub == "done": commands.project_done(args.id)
+        elif args.sub == "undo": commands.project_undo(args.id)
     elif args.command == "task":
         if args.sub == "add": commands.task_add(args.title, args.project_id, args.due_date, args.priority, args.duration)
         elif args.sub == "edit": commands.task_edit(args.id, args.title, args.project_id, args.due_date, args.priority, args.duration)
         elif args.sub == "delete": commands.task_delete(args.id)
         elif args.sub == "list": commands.task_list()
         elif args.sub == "done": commands.task_done(args.id)
+        elif args.sub == "undo": commands.task_undo(args.id)
     elif args.command == "habit":
         if args.sub == "add": commands.habit_add(args.title, args.reward)
         elif args.sub == "edit": commands.habit_edit(args.id, args.title, args.reward)

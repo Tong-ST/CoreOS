@@ -31,6 +31,7 @@ Follow these steps to get CoreOS up and running on your Linux machine:
 First, clone the project repository to your local machine:
 
 ```bash
+cd ~
 git clone https://github.com/Tong-ST/CoreOS.git
 cd CoreOS
 ```
@@ -69,9 +70,8 @@ nano ~/.local/bin/coreos
 
 ```bash
 #!/bin/bash
-# Point directly to the venv's python to run the script
-# Replace the path with your actual project path if it's not ~/Documents/GitHub/CoreOS
-~/Documents/GitHub/CoreOS/venv/bin/python ~/Documents/GitHub/CoreOS/main.py "$@"
+# Replace the path with your actual project path if it's not ~/CoreOS
+~/CoreOS/venv/bin/python ~/CoreOS/main.py "$@"
 ```
 
 **Make the script executable:**
@@ -152,3 +152,5 @@ Interact with CoreOS using various commands:
 
 ## With my others app ([Funcher](https://github.com/Tong-ST/Funcher))
 ![image](example/demo_1.png)
+
+*   Funcher config file "coreos.json" for funcher app is on exmaple folder.

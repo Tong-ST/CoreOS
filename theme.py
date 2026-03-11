@@ -1,11 +1,11 @@
 # CoreOS Theme Settings
 
 THEME = {
-    "text": "rgba(86, 231, 151, 0.7)",
-    "border": "rgba(86, 231, 151, 0.15)",
-    "accent": "#41ec55",
+    "text": "#FFB642",
+    "border": "rgba(92, 61, 11, 0.8)",
+    "accent": "#FFB642",
     "background": "transparent",
-    "surface": "#001500",  # Used for modals
+    "surface": "rgba(92, 61, 11, 0.2)",  # Used for modals
     
     # Layout settings
     "stats_row_height": 9,

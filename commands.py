@@ -14,6 +14,24 @@ def generate_id(prefix, items):
 # --- Sync Logic ---
 def sync_daily_tasks():
     today = date.today().isoformat()
+
+    # Auto-delete overdue project tasks
+    initial_task_count = len(data_store.tasks)
+    tasks_to_keep = []
+    for task in data_store.tasks:
+        if task.project_id and task.status == "todo" and task.due_date:
+            try:
+                task_due_date = datetime.fromisoformat(task.due_date).date()
+                if task_due_date < date.today():
+                    console.print(f"[yellow]Overdue project task deleted: {task.title}[/yellow]")
+                    continue # Skip adding this task to tasks_to_keep
+            except ValueError: # Handle invalid date formats gracefully
+                pass
+        tasks_to_keep.append(task)
+    data_store.tasks = tasks_to_keep
+    if len(data_store.tasks) < initial_task_count:
+        data_store.save()
+
     # Sync Projects
     for p in data_store.projects:
         if p.status == "active":
@@ -22,12 +40,13 @@ def sync_daily_tasks():
             exists = any(
                 t.project_id == p.id and 
                 t.title == daily_title and 
+                t.due_date == today and # Check for today's specific task
                 datetime.fromisoformat(t.created_at).date().isoformat() == today
                 for t in data_store.tasks
             )
             if not exists:
                 task_add(daily_title, project_id=p.id, due_date=today, priority=p.default_priority, estimated_minutes=p.default_task_minutes)
-    
+
     # Goal tasks are no longer auto-created per user request. 
     # Users can link projects to goals instead.
 

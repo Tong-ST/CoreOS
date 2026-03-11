@@ -142,7 +142,7 @@ Interact with CoreOS using various commands:
 *   **Delete**: `x` (on selected item).
 *   **Mark Done**: `Enter` or `d`.
 *   **Undo**: `u` (on selected item).
-*   **Sync/Refresh**: `F5`.
+*   **Refresh**: `F5`.
 *   **Quit**: `q`.
 
 ## Terminal Notes

@@ -89,7 +89,7 @@ If you use the Sway window manager, you can bind `coreos` to a keyboard shortcut
 ```code
 bindsym $mod+Shift+m exec kitty -e coreos
 ```
-*(This example binds it to `Super + Shift + m` and uses `foot` as the terminal. Adjust `kitty -e` and the keybind as needed for your setup.)*
+*(This example binds it to `Super + Shift + m` and uses `kitty` as the terminal. Adjust `kitty -e` and the keybind as needed for your setup.)*
 
 ## How to Use
 

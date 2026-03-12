@@ -2,6 +2,7 @@ from textual.app import App, ComposeResult
 from textual.widgets import Header, Footer, Static, DataTable, Button, Label, ProgressBar, Input, Select
 from textual.containers import Container, Horizontal, Vertical, Grid
 from textual.screen import Screen, ModalScreen
+from textual.validation import Regex
 from data import data_store
 from theme import THEME
 import commands
@@ -64,6 +65,38 @@ class CompanionWidget(Static):
             
         self.update("\n".join(art))
 
+class DatePickerModal(ModalScreen):
+    def compose(self) -> ComposeResult:
+        from datetime import date
+        today = date.today()
+        years = [(str(y), str(y)) for y in range(today.year, today.year + 5)]
+        months = [(f"{m:02}", f"{m:02}") for m in range(1, 13)]
+        days = [(f"{d:02}", f"{d:02}") for d in range(1, 32)]
+
+        yield Grid(
+            Label("Select Date", id="modal-title"),
+            Horizontal(
+                Select(years, value=str(today.year), id="year"),
+                Select(months, value=f"{today.month:02}", id="month"),
+                Select(days, value=f"{today.day:02}", id="day"),
+                classes="date-select-row"
+            ),
+            Horizontal(
+                Button("Set", variant="primary", id="set"),
+                Button("Cancel", variant="error", id="cancel"),
+            ),
+            id="date-picker-dialog",
+        )
+
+    def on_button_pressed(self, event: Button.Pressed) -> None:
+        if event.button.id == "set":
+            y = self.query_one("#year", Select).value
+            m = self.query_one("#month", Select).value
+            d = self.query_one("#day", Select).value
+            self.dismiss(f"{y}-{m}-{d}")
+        else:
+            self.dismiss()
+
 class TaskAddModal(ModalScreen):
     def __init__(self, task=None):
         super().__init__()
@@ -79,7 +112,16 @@ class TaskAddModal(ModalScreen):
         yield Grid(
             Label(label_text, id="modal-title"),
             Input(placeholder="Title...", value=title_val, id="task-title"),
-            Input(placeholder="Due Date (e.g. 2026-03-15)...", value=due_val, id="task-due"),
+            Horizontal(
+                Input(
+                    placeholder="Due Date (YYYY-MM-DD)...", 
+                    value=due_val, 
+                    id="task-due",
+                    validators=[Regex(r"^(\d{4}-\d{2}-\d{2})?$")]
+                ),
+                Button("▼", id="pick-date", classes="icon-button"),
+                classes="input-with-icon"
+            ),
             Input(placeholder="Duration (minutes)...", value=duration_val, id="task-duration"),
             Label("Priority:"),
             Select(
@@ -95,7 +137,19 @@ class TaskAddModal(ModalScreen):
         )
 
     def on_button_pressed(self, event: Button.Pressed) -> None:
+        if event.button.id == "pick-date":
+            def set_date(date_str):
+                if date_str:
+                    self.query_one("#task-due", Input).value = date_str
+            self.app.push_screen(DatePickerModal(), set_date)
+            return
+
         if event.button.id == "submit":
+            # Check for validation errors
+            if not self.query_one("#task-due", Input).validate(self.query_one("#task-due", Input).value).is_valid:
+                self.app.notify("Invalid date format. Use YYYY-MM-DD", severity="error")
+                return
+            
             title = self.query_one("#task-title", Input).value
             due = self.query_one("#task-due", Input).value
             duration = self.query_one("#task-duration", Input).value
@@ -125,7 +179,16 @@ class GoalAddModal(ModalScreen):
             Input(placeholder="Description...", value=d, id="goal-desc"),
             Input(placeholder="Badge Name...", value=bn, id="goal-badge-name"),
             Input(placeholder="Badge Description...", value=bd, id="goal-badge-desc"),
-            Input(placeholder="Due Date (Optional)...", value=due, id="goal-due"),
+            Horizontal(
+                Input(
+                    placeholder="Due Date (YYYY-MM-DD)...", 
+                    value=due, 
+                    id="goal-due",
+                    validators=[Regex(r"^(\d{4}-\d{2}-\d{2})?$")]
+                ),
+                Button("▼", id="pick-date", classes="icon-button"),
+                classes="input-with-icon"
+            ),
             Horizontal(
                 Button("Submit", variant="primary", id="submit"),
                 Button("Cancel", variant="error", id="cancel"),
@@ -134,7 +197,19 @@ class GoalAddModal(ModalScreen):
         )
 
     def on_button_pressed(self, event: Button.Pressed) -> None:
+        if event.button.id == "pick-date":
+            def set_date(date_str):
+                if date_str:
+                    self.query_one("#goal-due", Input).value = date_str
+            self.app.push_screen(DatePickerModal(), set_date)
+            return
+
         if event.button.id == "submit":
+            # Check for validation errors
+            if not self.query_one("#goal-due", Input).validate(self.query_one("#goal-due", Input).value).is_valid:
+                self.app.notify("Invalid date format. Use YYYY-MM-DD", severity="error")
+                return
+
             title = self.query_one("#goal-title", Input).value
             desc = self.query_one("#goal-desc", Input).value
             bn = self.query_one("#goal-badge-name", Input).value
@@ -164,7 +239,16 @@ class ProjectAddModal(ModalScreen):
             Input(placeholder="Description...", value=d, id="proj-desc"),
             Input(placeholder="Goal ID (Optional, e.g. goal-001)...", value=g, id="proj-goal"),
             Input(placeholder="Daily Task Duration (mins)...", value=dur, id="proj-duration"),
-            Input(placeholder="Due Date (Optional)...", value=due, id="proj-due"),
+            Horizontal(
+                Input(
+                    placeholder="Due Date (YYYY-MM-DD)...", 
+                    value=due, 
+                    id="proj-due",
+                    validators=[Regex(r"^(\d{4}-\d{2}-\d{2})?$")]
+                ),
+                Button("▼", id="pick-date", classes="icon-button"),
+                classes="input-with-icon"
+            ),
             Label("Default Task Priority:"),
             Select(
                 [("High", "high"), ("Medium", "medium"), ("Low", "low")],
@@ -179,7 +263,19 @@ class ProjectAddModal(ModalScreen):
         )
 
     def on_button_pressed(self, event: Button.Pressed) -> None:
+        if event.button.id == "pick-date":
+            def set_date(date_str):
+                if date_str:
+                    self.query_one("#proj-due", Input).value = date_str
+            self.app.push_screen(DatePickerModal(), set_date)
+            return
+
         if event.button.id == "submit":
+            # Check for validation errors
+            if not self.query_one("#proj-due", Input).validate(self.query_one("#proj-due", Input).value).is_valid:
+                self.app.notify("Invalid date format. Use YYYY-MM-DD", severity="error")
+                return
+
             title = self.query_one("#proj-title", Input).value
             desc = self.query_one("#proj-desc", Input).value
             goal = self.query_one("#proj-goal", Input).value
@@ -253,16 +349,20 @@ class Dashboard(Screen):
                         Label(f"{p.credits} cr", id="credits-label"),
                         classes="stats-card"
                     )
-                yield Label("Active Tasks (Enter to mark Done)", classes="section-title")
-                yield DataTable(id="dashboard-tasks")
+                yield Label("Today's Tasks (Enter to mark Done)", classes="section-title")
+                yield DataTable(id="today-tasks")
+                yield Label("Upcoming & Overdue Tasks", classes="section-title")
+                yield DataTable(id="upcoming-tasks")
                 yield Label("Recent Badges", classes="section-title")
                 yield DataTable(id="dashboard-badges")
         yield Footer()
 
     def on_mount(self) -> None:
-        tasks_table = self.query_one("#dashboard-tasks", DataTable)
-        tasks_table.add_columns("Title", "Due", "Duration", "Priority", "Reward")
-        tasks_table.cursor_type = "row"
+        for tid in ["#today-tasks", "#upcoming-tasks"]:
+            table = self.query_one(tid, DataTable)
+            table.add_columns("Title", "Due", "Duration", "Priority", "Reward")
+            table.cursor_type = "row"
+        
         badges_table = self.query_one("#dashboard-badges", DataTable)
         badges_table.add_columns("Name", "Earned At")
         self.refresh_data()
@@ -271,16 +371,17 @@ class Dashboard(Screen):
         self.refresh_data()
 
     def on_data_table_row_selected(self, event: DataTable.RowSelected) -> None:
-        if event.data_table.id == "dashboard-tasks":
+        if event.data_table.id in ["today-tasks", "upcoming-tasks"]:
             row_data = event.data_table.get_row_at(event.cursor_row)
             title = row_data[0]
-            # Find the task ID by title (assuming title is unique enough among todo tasks)
             task = next((t for t in data_store.tasks if t.title == title and t.status == "todo"), None)
             if task:
                 commands.task_done(task.id)
                 self.refresh_data()
 
     def refresh_data(self) -> None:
+        from datetime import date
+        today_str = date.today().isoformat()
         p = data_store.player
         try:
             self.query_one("#xp-bar", ProgressBar).progress = p.xp % 100
@@ -288,14 +389,27 @@ class Dashboard(Screen):
             self.query_one("#xp-label", Label).update(f"XP: {p.xp}")
             self.query_one("#credits-label", Label).update(f"{p.credits} cr")
             
-            tasks_table = self.query_one("#dashboard-tasks", DataTable)
-            if tasks_table.columns:
-                tasks_table.clear()
-                for t in data_store.tasks:
-                    if t.status == "todo":
-                        xp = max(5, int(t.estimated_minutes / 3))
-                        creds = max(2, int(t.estimated_minutes / 6))
-                        tasks_table.add_row(t.title, t.due_date or "-", f"{t.estimated_minutes}m", t.priority, f"{xp}xp/{creds}cr")
+            tt = self.query_one("#today-tasks", DataTable)
+            ut = self.query_one("#upcoming-tasks", DataTable)
+            
+            if tt.columns and ut.columns:
+                tt.clear()
+                ut.clear()
+                
+                # Active todo tasks
+                todo_tasks = [t for t in data_store.tasks if t.status == "todo"]
+                # Sort: soonest due date first
+                todo_tasks.sort(key=lambda x: (x.due_date is None, x.due_date))
+                
+                for t in todo_tasks:
+                    xp = max(5, int(t.estimated_minutes / 3))
+                    creds = max(2, int(t.estimated_minutes / 6))
+                    row = (t.title, t.due_date or "-", f"{t.estimated_minutes}m", t.priority, f"{xp}xp/{creds}cr")
+                    
+                    if t.due_date == today_str:
+                        tt.add_row(*row)
+                    else:
+                        ut.add_row(*row)
             
             badges_table = self.query_one("#dashboard-badges", DataTable)
             if badges_table.columns:
@@ -339,12 +453,14 @@ class GoalsProjectsScreen(Screen):
             gt = self.query_one("#goals-table", DataTable)
             if gt.columns:
                 gt.clear()
-                for g in data_store.goals: gt.add_row(g.id, g.title, g.due_date or "-", g.status)
+                sorted_goals = sorted(data_store.goals, key=lambda x: (x.status == "done", x.due_date is None, x.due_date))
+                for g in sorted_goals: gt.add_row(g.id, g.title, g.due_date or "-", g.status)
             
             pt = self.query_one("#projects-table", DataTable)
             if pt.columns:
                 pt.clear()
-                for p in data_store.projects: 
+                sorted_projs = sorted(data_store.projects, key=lambda x: (x.status == "done", x.due_date is None, x.due_date))
+                for p in sorted_projs: 
                     goal_slug = p.goal_id if p.goal_id else "-"
                     pt.add_row(p.id, p.title, goal_slug, p.due_date or "-", p.status)
         except Exception:
@@ -427,14 +543,17 @@ class TasksScreen(Screen):
     def compose(self) -> ComposeResult:
         yield Header()
         with Container(classes="scroll-container"):
-            yield Label("All Tasks (n: New, Enter/d: Done, e: Edit, x: Delete, u: Undo)", classes="section-title")
-            yield DataTable(id="all-tasks-table")
+            yield Label("Pending Tasks (n: New, Enter/d: Done, e: Edit, x: Delete, u: Undo)", classes="section-title")
+            yield DataTable(id="todo-tasks-table")
+            yield Label("Completed Tasks (u: Undo, x: Delete)", classes="section-title")
+            yield DataTable(id="done-tasks-table")
         yield Footer()
 
     def on_mount(self) -> None:
-        table = self.query_one("#all-tasks-table", DataTable)
-        table.cursor_type = "row"
-        table.add_columns("ID", "Title", "Due", "Duration", "Priority", "Reward", "Status")
+        for tid in ["#todo-tasks-table", "#done-tasks-table"]:
+            table = self.query_one(tid, DataTable)
+            table.cursor_type = "row"
+            table.add_columns("ID", "Title", "Due", "Duration", "Priority", "Reward", "Status")
         self.refresh_data()
 
     def on_screen_resume(self) -> None:
@@ -445,16 +564,18 @@ class TasksScreen(Screen):
             self.app.push_screen(TaskAddModal(), self.add_task_callback)
             return
 
-        table = self.query_one("#all-tasks-table", DataTable)
-        if table.row_count > 0 and table.cursor_row is not None:
-            row_data = table.get_row_at(table.cursor_row)
+        focused = self.app.focused
+        if isinstance(focused, DataTable) and focused.row_count > 0 and focused.cursor_row is not None:
+            row_data = focused.get_row_at(focused.cursor_row)
             task_id = row_data[0]
-            if event.key == "d":
-                commands.task_done(task_id)
-                self.refresh_data()
+            if event.key == "d" or event.key == "enter":
+                if focused.id == "todo-tasks-table":
+                    commands.task_done(task_id)
+                    self.refresh_data()
             elif event.key == "u":
-                commands.task_undo(task_id)
-                self.refresh_data()
+                if focused.id == "done-tasks-table":
+                    commands.task_undo(task_id)
+                    self.refresh_data()
             elif event.key == "e":
                 task = next(t for t in data_store.tasks if t.id == task_id)
                 self.app.push_screen(TaskAddModal(task=task), lambda res: self.edit_task_callback(task_id, res))
@@ -463,9 +584,8 @@ class TasksScreen(Screen):
                 self.refresh_data()
 
     def on_data_table_row_selected(self, event: DataTable.RowSelected) -> None:
-        task_id = event.data_table.get_row_at(event.cursor_row)[0]
-        commands.task_done(task_id)
-        self.refresh_data()
+        # Handling Enter handled in on_key for more specific table control
+        pass
 
     def add_task_callback(self, result: tuple):
         if result:
@@ -480,13 +600,30 @@ class TasksScreen(Screen):
 
     def refresh_data(self):
         try:
-            table = self.query_one("#all-tasks-table", DataTable)
-            if table.columns:
-                table.clear()
-                for t in sorted(data_store.tasks, key=lambda x: (x.status == "done", x.priority != "high", x.priority != "medium")):
+            tt = self.query_one("#todo-tasks-table", DataTable)
+            dt = self.query_one("#done-tasks-table", DataTable)
+            
+            if tt.columns and dt.columns:
+                tt.clear()
+                dt.clear()
+                
+                # To-Do: Oldest first
+                todo_tasks = sorted([t for t in data_store.tasks if t.status == "todo"], 
+                                  key=lambda x: (x.due_date is None, x.due_date))
+                
+                # Done: Newest first (using created_at or due_date as proxy)
+                done_tasks = sorted([t for t in data_store.tasks if t.status == "done"], 
+                                  key=lambda x: x.created_at, reverse=True)
+
+                for t in todo_tasks:
                     xp = max(5, int(t.estimated_minutes / 3))
                     creds = max(2, int(t.estimated_minutes / 6))
-                    table.add_row(t.id, t.title, t.due_date or "-", f"{t.estimated_minutes}m", t.priority, f"{xp}xp/{creds}cr", t.status)
+                    tt.add_row(t.id, t.title, t.due_date or "-", f"{t.estimated_minutes}m", t.priority, f"{xp}xp/{creds}cr", t.status)
+                
+                for t in done_tasks:
+                    xp = max(5, int(t.estimated_minutes / 3))
+                    creds = max(2, int(t.estimated_minutes / 6))
+                    dt.add_row(t.id, t.title, t.due_date or "-", f"{t.estimated_minutes}m", t.priority, f"{xp}xp/{creds}cr", t.status)
         except Exception:
             pass
 
@@ -645,6 +782,39 @@ class CoreApp(App):
     #credits-label {{ color: {THEME["accent"]}; text-style: bold; }}
     .section-title {{ background: {THEME["border"]} 60%; color: {THEME["text"]}; padding: 0 1; margin-top: 1; }}
     .column {{ width: 1fr; padding: 1; }}
+    
+    .input-with-icon {{
+        height: auto;
+        align: left middle;
+    }}
+    .input-with-icon > Input {{
+        width: 1fr;
+    }}
+    .icon-button {{
+        width: 6;
+        min-width: 6;
+        margin-left: 1;
+        padding: 0;
+    }}
+
+    .date-select-row {{
+        height: auto;
+        margin-bottom: 1;
+    }}
+    .date-select-row > Select {{
+        width: 1fr;
+        margin: 0 1;
+    }}
+
+    #date-picker-dialog {{
+        grid-size: 1;
+        padding: 1 2;
+        background: {THEME["surface"]};
+        border: thick {THEME["border"]};
+        width: 50;
+        height: 20;
+        align: center middle;
+    }}
     
     DataTable {{
         background: transparent;

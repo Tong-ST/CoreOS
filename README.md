@@ -32,7 +32,7 @@ First, clone the project repository to your local machine:
 
 ```bash
 cd ~
-git clone https://github.com/Tong-ST/CoreOS.git
+git clone --depth 1 https://github.com/Tong-ST/CoreOS.git
 cd CoreOS
 ```
 

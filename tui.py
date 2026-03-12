@@ -811,7 +811,7 @@ class CoreApp(App):
         padding: 1 2;
         background: {THEME["surface"]};
         border: thick {THEME["border"]};
-        width: 50;
+        width: 60;
         height: 20;
         align: center middle;
     }}
@@ -877,6 +877,17 @@ class CoreApp(App):
     }}
     
     #modal-title {{ text-align: center; text-style: bold; margin-bottom: 1; color: {THEME["accent"]}; }}
+
+    Select > SelectCurrent {{
+        background: {THEME['surface']};
+        color: {THEME['text']};
+        border: tall {THEME['accent']};
+    }}
+
+    Select > SelectOverlay {{
+        background: {THEME['surface']};
+        border: tall {THEME['accent']};
+    }}
     """
     BINDINGS = [
         ("f1", "switch_screen('dashboard')", "Dashboard"),

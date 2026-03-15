@@ -8,8 +8,18 @@ import math
 console = Console()
 
 def generate_id(prefix, items):
-    count = len(items) + 1
-    return f"{prefix}-{count:03}"
+    import re
+    max_id = 0
+    for item in items:
+        # Extract the number from IDs like "task-005"
+        match = re.search(r'-(\d+)$', item.id)
+        if match:
+            num = int(match.group(1))
+            if num > max_id:
+                max_id = num
+    
+    new_num = max_id + 1
+    return f"{prefix}-{new_num:03}"
 
 # --- Sync Logic ---
 def sync_daily_tasks():
